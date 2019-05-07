@@ -1,13 +1,13 @@
 .intel_syntax noprefix
-.global _plus,_main
+.global plus,main
 
-_plus:
+plus:
   add rsi, rdi
   mov rax, rsi
   ret
 
-_main:
+main:
   mov rdi, 3
   mov rsi, 4
-  call _plus
+  call plus
   ret
