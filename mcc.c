@@ -33,7 +33,7 @@ void tokenize(char *p) {
 			continue;
 		}
 
-		if (*p=='+' || *p=='-' || *p=='*' || *p=='/') {
+		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')') {
 			tokens[i].ty = *p;
 			tokens[i].input = p;
 			i++;
@@ -91,19 +91,35 @@ int consume(int ty) {
 	return 1;
 }
 
-Node *mul() {
-	Node *node;
-	if (tokens[pos].ty == TK_NUM) {
-		node = new_node_num(tokens[pos++].val);
-	} else {
-		error("数値トークンでありません");
+Node *term();
+Node *add();
+Node *mul();
+
+Node *term() {
+	if (consume('(')) {
+		Node *node = add();
+		if (!consume(')')) {
+			error("閉じ括弧がありません: %s", tokens[pos].input);
+		}
+		return node;
 	}
+
+	if (tokens[pos].ty==TK_NUM) {
+		Node *node = new_node_num(tokens[pos++].val);
+		return node;
+	}
+
+	error("定義されていないトークンです: %s", tokens[pos].input);
+}
+
+Node *mul() {
+	Node *node = term();
 
 	for (;;) {
 		if (consume('*')) {
-			node = new_node('*', node, mul());
+			node = new_node('*', node, term());
 		} else if (consume('/')) {
-			node = new_node('/', node, mul());
+			node = new_node('/', node, term());
 		} else {
 			return node;
 		}
