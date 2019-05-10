@@ -6,7 +6,11 @@
 
 enum {
 	TK_NUM = 256,
-	TK_EOF
+	TK_EOF,
+	TK_EQ,
+	TK_NE,
+	TK_LE,
+	TK_GE,
 };
 
 typedef struct {
@@ -33,7 +37,36 @@ void tokenize(char *p) {
 			continue;
 		}
 
-		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')') {
+		if (strncmp(p,"==",2)==0) {
+			tokens[i].ty = TK_EQ;
+			tokens[i].input = p;
+			i++;
+			p += 2;
+			continue;
+		}
+		if (strncmp(p,"!=",2)==0) {
+			tokens[i].ty = TK_NE;
+			tokens[i].input = p;
+			i++;
+			p += 2;
+			continue;
+		}
+		if (strncmp(p,"<=",2)==0) {
+			tokens[i].ty = TK_LE;
+			tokens[i].input = p;
+			i++;
+			p += 2;
+			continue;
+		}
+		if (strncmp(p,">=",2)==0) {
+			tokens[i].ty = TK_GE;
+			tokens[i].input = p;
+			i++;
+			p += 2;
+			continue;
+		}
+
+		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>') {
 			tokens[i].ty = *p;
 			tokens[i].input = p;
 			i++;
@@ -95,6 +128,40 @@ Node *term();
 Node *add();
 Node *mul();
 Node *unary();
+Node *equality();
+Node *relational();
+
+Node *equality() {
+	Node *node = relational();
+
+	for (;;) {
+		if (consume(TK_EQ)) {
+			node = new_node(TK_EQ, node, relational());
+		} else if (consume(TK_NE)) {
+			node = new_node(TK_NE, node, relational());
+		} else {
+			return node;
+		}
+	}
+}
+
+Node *relational() {
+	Node *node = add();
+
+	for (;;) {
+		if (consume(TK_LE)) {
+			node = new_node(TK_LE, node, add());
+		} else if (consume('<')) {
+			node = new_node('<', node, add());
+		} else if (consume(TK_GE)) {
+			node = new_node(TK_LE, add(), node);
+		} else if (consume('>')) {
+			node = new_node('<', add(), node);
+		} else {
+			return node;
+		}
+	}
+}
 
 Node *unary() {
 	if (consume('+')) {
@@ -177,6 +244,26 @@ void gen(Node *node) {
 		printf("	mov rdx,0\n");
 		printf("	div rdi\n");
 		break;
+	case TK_EQ:
+		printf("	cmp rax,rdi\n");
+		printf("	sete al\n");
+		printf("	movzb rax,al\n");
+		break;
+	case TK_NE:
+		printf("	cmp rax,rdi\n");
+		printf("	setne al\n");
+		printf("	movzb rax,al\n");
+		break;
+	case TK_LE:
+		printf("	cmp rax,rdi\n");
+		printf("	setle al\n");
+		printf("	movzb rax,al\n");
+		break;
+	case '<':
+		printf("	cmp rax,rdi\n");
+		printf("	setl al\n");
+		printf("	movzb rax,al\n");
+		break;
 	default:
 		error("未定義のノードです");
 		break;
@@ -191,7 +278,7 @@ int main(int argc, char **argv) {
 	}
 
 	tokenize(argv[1]);
-	Node *node = add();
+	Node *node = equality();
 
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
