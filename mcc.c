@@ -33,7 +33,7 @@ void tokenize(char *p) {
 			continue;
 		}
 
-		if (*p=='+' || *p=='-') {
+		if (*p=='+' || *p=='-' || *p=='*' || *p=='/') {
 			tokens[i].ty = *p;
 			tokens[i].input = p;
 			i++;
@@ -91,19 +91,33 @@ int consume(int ty) {
 	return 1;
 }
 
-Node *add() {
+Node *mul() {
 	Node *node;
 	if (tokens[pos].ty == TK_NUM) {
 		node = new_node_num(tokens[pos++].val);
 	} else {
-		error("数値でないトークンです: %s", tokens[pos].input);
+		error("数値トークンでありません");
 	}
 
 	for (;;) {
+		if (consume('*')) {
+			node = new_node('*', node, mul());
+		} else if (consume('/')) {
+			node = new_node('/', node, mul());
+		} else {
+			return node;
+		}
+	}
+}
+
+Node *add() {
+	Node *node = mul();
+
+	for (;;) {
 		if (consume('+')) {
-			node = new_node('+', node, add());
+			node = new_node('+', node, mul());
 		} else if (consume('-')) {
-			node = new_node('-', node, add());
+			node = new_node('-', node, mul());
 		} else {
 			return node;
 		}
@@ -120,21 +134,28 @@ void gen(Node *node) {
 	gen(node->rhs);
 
 	printf("	pop rdi\n");
-	printf("	pop rdx\n");
+	printf("	pop rax\n");
 
 	switch (node->ty) {
 	case '+':
-		printf("	add rdx,rdi\n");
+		printf("	add rax,rdi\n");
 		break;
 	case '-':
-		printf("	sub rdx,rdi\n");
+		printf("	sub rax,rdi\n");
+		break;
+	case '*':
+		printf("	mul rdi\n");
+		break;
+	case '/':
+		printf("	mov rdx,0\n");
+		printf("	div rdi\n");
 		break;
 	default:
 		error("未定義のノードです");
 		break;
 	}
 
-	printf("	push rdx\n");
+	printf("	push rax\n");
 }
 
 int main(int argc, char **argv) {
