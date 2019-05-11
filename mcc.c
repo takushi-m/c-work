@@ -4,6 +4,28 @@
 #include<stdlib.h>
 #include<string.h>
 
+typedef struct {
+	void **data;
+	int capacity;
+	int len;
+} Vector;
+
+Vector *new_vector() {
+	Vector *vec = malloc(sizeof(Vector));
+	vec->data = malloc(sizeof(void *)*16);
+	vec->capacity = 16;
+	vec->len = 0;
+	return vec;
+}
+
+void vec_push(Vector *vec, void *elem) {
+	if (vec->capacity==vec->len) {
+		vec->capacity *= 2;
+		vec->data = realloc(vec->data, sizeof(void *) * vec->capacity);
+	}
+	vec->data[vec->len++] = elem;
+}
+
 enum {
 	TK_NUM = 256,
 	TK_EOF,
@@ -19,7 +41,14 @@ typedef struct {
 	char *input;
 } Token;
 
-Token tokens[100];
+Token *add_token(Vector *vec, int ty, char *input) {
+	Token *tk = malloc(sizeof(Token));
+	tk->ty = ty;
+	tk->input = input;
+
+	vec_push(vec, tk);
+	return tk;
+}
 
 void error(char *fmt, ...) {
 	va_list ap;
@@ -29,7 +58,8 @@ void error(char *fmt, ...) {
 	exit(1);
 }
 
-void tokenize(char *p) {
+Vector *tokenize(char *p) {
+	Vector *v = new_vector();
 	int i = 0;
 	while (*p) {
 		if (isspace(*p)) {
@@ -38,46 +68,40 @@ void tokenize(char *p) {
 		}
 
 		if (strncmp(p,"==",2)==0) {
-			tokens[i].ty = TK_EQ;
-			tokens[i].input = p;
+			add_token(v, TK_EQ, p);
 			i++;
 			p += 2;
 			continue;
 		}
 		if (strncmp(p,"!=",2)==0) {
-			tokens[i].ty = TK_NE;
-			tokens[i].input = p;
+			add_token(v, TK_NE, p);
 			i++;
 			p += 2;
 			continue;
 		}
 		if (strncmp(p,"<=",2)==0) {
-			tokens[i].ty = TK_LE;
-			tokens[i].input = p;
+			add_token(v, TK_LE, p);
 			i++;
 			p += 2;
 			continue;
 		}
 		if (strncmp(p,">=",2)==0) {
-			tokens[i].ty = TK_GE;
-			tokens[i].input = p;
+			add_token(v, TK_GE, p);
 			i++;
 			p += 2;
 			continue;
 		}
 
 		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>') {
-			tokens[i].ty = *p;
-			tokens[i].input = p;
+			add_token(v, *p, p);
 			i++;
 			p++;
 			continue;
 		}
 
 		if (isdigit(*p)) {
-			tokens[i].ty = TK_NUM;
-			tokens[i].input = p;
-			tokens[i].val = strtol(p, &p, 10);
+			Token *tk = add_token(v, TK_NUM, p);
+			tk->val = strtol(p, &p, 10);
 			i++;
 			continue;
 		}
@@ -85,8 +109,8 @@ void tokenize(char *p) {
 		error("トークナイズできません: %s", p);
 	}
 
-	tokens[i].ty = TK_EOF;
-	tokens[i].input = p;
+	add_token(v, TK_EOF, p);
+	return v;
 }
 
 enum {
@@ -115,9 +139,11 @@ Node *new_node_num(int val) {
 	return node;
 }
 
-int pos = 0;
+Vector *tokens;
+int pos;
 int consume(int ty) {
-	if (tokens[pos].ty != ty) {
+	Token *t = tokens->data[pos];
+	if (t->ty != ty) {
 		return 0;
 	}
 	pos++;
@@ -174,20 +200,22 @@ Node *unary() {
 }
 
 Node *term() {
+	Token *t = tokens->data[pos];
 	if (consume('(')) {
 		Node *node = add();
 		if (!consume(')')) {
-			error("閉じ括弧がありません: %s", tokens[pos].input);
+			error("閉じ括弧がありません: %s", t->input);
 		}
 		return node;
 	}
 
-	if (tokens[pos].ty==TK_NUM) {
-		Node *node = new_node_num(tokens[pos++].val);
+	if (t->ty==TK_NUM) {
+		pos++;
+		Node *node = new_node_num(t->val);
 		return node;
 	}
 
-	error("定義されていないトークンです: %s", tokens[pos].input);
+	error("定義されていないトークンです: %s", t->input);
 }
 
 Node *mul() {
@@ -272,12 +300,42 @@ void gen(Node *node) {
 	printf("	push rax\n");
 }
 
+void expect(int line, int expected, int actual) {
+	if (expected==actual) {
+		return;
+	} else {
+		fprintf(stderr, "%d: %d expected, but got %d\n", line, expected, actual);
+		exit(1);
+	}
+}
+
+void runtest() {
+	Vector *vec = new_vector();
+	expect(__LINE__, 0, vec->len);
+
+	for (int i=0;i<100;i++) {
+		vec_push(vec, (void *)i);
+	}
+
+	expect(__LINE__, 100, vec->len);
+	expect(__LINE__, 0, (long)vec->data[0]);
+	expect(__LINE__, 50, (long)vec->data[50]);
+	expect(__LINE__, 99, (long)vec->data[99]);
+
+	printf("OK\n");
+}
+
 int main(int argc, char **argv) {
 	if (argc!=2) {
 		error("引数の数が正しくありません");
 	}
 
-	tokenize(argv[1]);
+	if (strncmp(argv[1], "-test", 5)==0) {
+		runtest();
+		return 0;
+	}
+
+	tokens = tokenize(argv[1]);
 	Node *node = equality();
 
 	printf(".intel_syntax noprefix\n");

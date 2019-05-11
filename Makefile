@@ -1,6 +1,7 @@
 mcc: mcc.c
 
 test: mcc
+	./mcc -test
 	./test.sh
 
 clean:
