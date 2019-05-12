@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 	}
 
 	tokens = tokenize(argv[1]);
-	Node *node = equality();
+	Node *node = expr();
 
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");

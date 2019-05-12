@@ -50,6 +50,7 @@ Node *mul();
 Node *unary();
 Node *equality();
 Node *relational();
+Node *expr();
 
 extern Vector *tokens;
 extern int pos;

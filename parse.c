@@ -92,6 +92,12 @@ Node *new_node_num(int val) {
 	node->val = val;
 	return node;
 }
+
+Node *expr() {
+	Node *node = equality();
+	return node;
+}
+
 Node *equality() {
 	Node *node = relational();
 
