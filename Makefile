@@ -1,4 +1,11 @@
-mcc: mcc.c
+CFLAGS=-Wall -std=c11
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:.c=.o)
+
+mcc: $(OBJS)
+	$(CC) -o mcc $(OBJS) $(LDFLAGS)
+
+$(OBJS): mcc.h
 
 test: mcc
 	./mcc -test
