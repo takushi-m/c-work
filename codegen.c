@@ -1,3 +1,4 @@
+#include<stdio.h>
 #include "mcc.h"
 
 void gen(Node *node) {
