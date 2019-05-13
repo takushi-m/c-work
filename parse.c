@@ -1,9 +1,12 @@
 #include<stdlib.h>
+#include<ctype.h>
+#include<string.h>
 
 #include "mcc.h"
 
 Vector *tokens;
 int pos;
+Vector *codes;
 
 int consume(int ty) {
 	Token *t = tokens->data[pos];
@@ -57,7 +60,7 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
-		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>') {
+		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>' || *p==';' || *p=='=') {
 			add_token(v, *p, p);
 			i++;
 			p++;
@@ -78,6 +81,11 @@ Vector *tokenize(char *p) {
 	return v;
 }
 
+Node *add_node(Vector *vec, Node *node) {
+	vec_push(vec, node);
+	return node;
+}
+
 Node *new_node(int ty, Node *lhs, Node *rhs) {
 	Node *node = malloc(sizeof(Node));
 	node->ty = ty;
@@ -93,9 +101,37 @@ Node *new_node_num(int val) {
 	return node;
 }
 
+Vector *program() {
+	Vector *v = new_vector();
+	Token *t = tokens->data[pos];
+	while (t->ty != TK_EOF) {
+		Node *node = stmt();
+		add_node(v, node);
+		t = tokens->data[pos];
+	}
+	return v;
+}
+
+Node *stmt() {
+	Node *n = expr();
+	Token *t = tokens->data[pos];
+	if (!consume(';')) {
+		error("';'でないトークンです: %s", t->input);
+	}
+	return n;
+}
+
 Node *expr() {
-	Node *node = equality();
+	Node *node = assign();
 	return node;
+}
+
+Node *assign() {
+	Node *n = equality();
+	if (consume('=')) {
+		n = new_node('=', n, assign());
+	}
+	return n;
 }
 
 Node *equality() {

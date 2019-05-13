@@ -50,10 +50,14 @@ Node *mul();
 Node *unary();
 Node *equality();
 Node *relational();
+Node *assign();
 Node *expr();
+Node *stmt();
+Vector *program();
 
 extern Vector *tokens;
 extern int pos;
+extern Vector *codes;
 
 // codegen
 void gen(Node *node);
