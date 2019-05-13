@@ -60,6 +60,13 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
+		if ('a'<=*p && *p<='z') {
+			add_token(v, TK_IDENT, p);
+			i++;
+			p++;
+			continue;
+		}
+
 		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>' || *p==';' || *p=='=') {
 			add_token(v, *p, p);
 			i++;
@@ -98,6 +105,13 @@ Node *new_node_num(int val) {
 	Node *node = malloc(sizeof(Node));
 	node->ty = ND_NUM;
 	node->val = val;
+	return node;
+}
+
+Node *new_node_ident(char name) {
+	Node *node = malloc(sizeof(Node));
+	node->ty = ND_IDENT;
+	node->name = name;
 	return node;
 }
 
@@ -189,6 +203,12 @@ Node *term() {
 	if (t->ty==TK_NUM) {
 		pos++;
 		Node *node = new_node_num(t->val);
+		return node;
+	}
+
+	if (t->ty==TK_IDENT) {
+		pos++;
+		Node *node = new_node_ident(t->input[0]);
 		return node;
 	}
 

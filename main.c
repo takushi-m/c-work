@@ -29,11 +29,20 @@ int main(int argc, char **argv) {
 	printf(".global main\n");
 	printf("main:\n");
 
+	// プロローグ
+	printf("	push rbp\n");
+	printf("	mov rbp,rsp\n");
+	printf("	sub rsp,208\n");
+
+	// 本体
 	for (int i=0;i<codes->len;i++) {
 		gen(codes->data[i]);
+		printf("	pop rax\n");
 	}
 
-	printf("	pop rax\n");
+	// エピローグ
+	printf("	mov rsp,rbp\n");
+	printf("	pop rbp\n");
 	printf("	ret\n");
 	return 0;
 }
