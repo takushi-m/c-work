@@ -13,6 +13,7 @@ void vec_push(Vector *vec, void *elem);
 enum {
 	TK_NUM = 256,
 	TK_IDENT,
+	TK_RETURN,
 	TK_EOF,
 	TK_EQ,
 	TK_NE,
@@ -31,7 +32,8 @@ Token *add_token(Vector *vec, int ty, char *input);
 // Node
 enum {
 	ND_NUM = 256,
-	ND_IDENT
+	ND_IDENT,
+	ND_RETURN
 };
 
 typedef struct Node {

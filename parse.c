@@ -26,12 +26,26 @@ Token *add_token(Vector *vec, int ty, char *input) {
 	return tk;
 }
 
+int is_alnum(char c) {
+	return  ('a'<=c && c<='z') ||
+			('A'<=c && c<='Z') ||
+			('0'<=c && c<='9') ||
+			c=='_';
+}
+
 Vector *tokenize(char *p) {
 	Vector *v = new_vector();
 	int i = 0;
 	while (*p) {
 		if (isspace(*p)) {
 			p++;
+			continue;
+		}
+
+		if (strncmp(p,"return",6)==0 && !is_alnum(p[6])) {
+			add_token(v, TK_RETURN, p);
+			i++;
+			p += 6;
 			continue;
 		}
 
@@ -127,7 +141,15 @@ Vector *program() {
 }
 
 Node *stmt() {
-	Node *n = expr();
+	Node *n;
+	if (consume(TK_RETURN)) {
+		n = malloc(sizeof(Node));
+		n->ty = ND_RETURN;
+		n->lhs = expr();
+	} else {
+		n = expr();
+	}
+
 	Token *t = tokens->data[pos];
 	if (!consume(';')) {
 		error("';'でないトークンです: %s", t->input);
