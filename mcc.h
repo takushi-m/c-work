@@ -8,6 +8,16 @@ typedef struct {
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
 
+// Map
+typedef struct {
+	Vector *keys;
+	Vector *vals;
+} Map;
+
+Map *new_map();
+void map_put(Map *m, char *key, void *val);
+void *map_get(Map *m, char *key);
+
 
 // Token
 enum {
@@ -71,3 +81,6 @@ void gen(Node *node);
 // util
 void error(char *fmt, ...);
 int consume(int ty);
+
+// test
+void runtest();
