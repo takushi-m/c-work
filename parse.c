@@ -7,6 +7,8 @@
 Vector *tokens;
 int pos;
 Vector *codes;
+int numident;
+Map * ident;
 
 int consume(int ty) {
 	Token *t = tokens->data[pos];
@@ -74,10 +76,14 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
-		if ('a'<=*p && *p<='z') {
-			add_token(v, TK_IDENT, p);
+		if (isalpha(p[0])) {
+			int len = 0;
+			while (is_alnum(p[++len]));
+			Token *tk = add_token(v, TK_IDENT, p);
+			tk->name = malloc(sizeof(char)*len);
+			strncpy(tk->name, p, len);
 			i++;
-			p++;
+			p += len;
 			continue;
 		}
 
@@ -122,10 +128,15 @@ Node *new_node_num(int val) {
 	return node;
 }
 
-Node *new_node_ident(char name) {
+Node *new_node_ident(char *name) {
 	Node *node = malloc(sizeof(Node));
 	node->ty = ND_IDENT;
 	node->name = name;
+
+	void *val = map_get(ident, name);
+	if (val==NULL) {
+		map_put(ident, name, (void *)++numident);
+	}
 	return node;
 }
 
@@ -230,7 +241,7 @@ Node *term() {
 
 	if (t->ty==TK_IDENT) {
 		pos++;
-		Node *node = new_node_ident(t->input[0]);
+		Node *node = new_node_ident(t->name);
 		return node;
 	}
 

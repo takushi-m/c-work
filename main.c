@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
 	}
 
 	tokens = tokenize(argv[1]);
+	ident = new_map();
 	codes = program();
 
 	printf(".intel_syntax noprefix\n");
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
 	// プロローグ
 	printf("	push rbp\n");
 	printf("	mov rbp,rsp\n");
-	printf("	sub rsp,208\n");
+	printf("	sub rsp,%d\n", numident*8);
 
 	// 本体
 	for (int i=0;i<codes->len;i++) {
