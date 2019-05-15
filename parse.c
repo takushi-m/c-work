@@ -51,6 +51,13 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
+		if (strncmp(p,"else",4)==0) {
+			add_token(v, TK_ELSE, p);
+			i++;
+			p += 4;
+			continue;
+		}
+
 		if (strncmp(p,"if",2)==0) {
 			add_token(v, TK_IF, p);
 			i++;
@@ -162,7 +169,7 @@ Node *stmt() {
 	Node *n;
 	if (consume(TK_IF)) {
 		if (!consume('(')) {
-			error("if (A) B の形にしてください");
+			error("ifの条件式がありません");
 		}
 		n = malloc(sizeof(Node));
 		n->ty = ND_IF;
@@ -170,7 +177,16 @@ Node *stmt() {
 		if (!consume(')')) {
 			error("ifの条件式が閉じられていません");
 		}
-		n->rhs = stmt();
+		Node *then = stmt();
+		if (consume(TK_ELSE)) {
+			Node *el = malloc(sizeof(Node));
+			el->ty = ND_ELSE;
+			el->lhs = then;
+			el->rhs = stmt();
+			n->rhs = el;
+		} else {
+			n->rhs = then;
+		}
 		return n;
 	} else if (consume(TK_RETURN)) {
 		n = malloc(sizeof(Node));

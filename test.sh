@@ -47,5 +47,7 @@ try 10 'a=1;b=10;return a*b;'
 try 42 'hoge=10;fuga=30;return hoge+fuga+2;'
 try 1 'if (1>0) return 1;return 0;'
 try 1 'if (1==0) return 0;return 1;'
+try 1 'if (1>0) return 1; else return 0;'
+try 1 'if (1==0) return 0; else return 1;'
 
 echo OK

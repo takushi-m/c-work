@@ -42,15 +42,31 @@ void gen(Node *node) {
 	}
 
 	if (node->ty==ND_IF) {
-		// if (A) B
-		int label = LABEL++;
-		gen(node->lhs); // A
-		printf("	pop rax\n");
-		printf("	cmp rax,0\n");
-		printf("	je .LABEL%d\n", label);
-		gen(node->rhs); // B
-		printf(".LABEL%d:\n", label);
-		return;
+		if (node->rhs->ty!=ND_ELSE) {
+			// if (A) B
+			int label = LABEL++;
+			gen(node->lhs); // A
+			printf("	pop rax\n");
+			printf("	cmp rax,0\n");
+			printf("	je .LABEL%d\n", label);
+			gen(node->rhs); // B
+			printf(".LABEL%d:\n", label);
+			return;
+		} else {
+			// if (A) B else C
+			int endlabel = LABEL++;
+			int elselabel = LABEL++;
+			gen(node->lhs); // A
+			printf("	pop rax\n");
+			printf("	cmp rax,0\n");
+			printf("	je .Lelse%d\n", elselabel);
+			gen(node->rhs->lhs); // B
+			printf("	jmp .Lend%d\n", endlabel);
+			printf(".Lelse%d:\n", elselabel);
+			gen(node->rhs->rhs); // C
+			printf(".Lend%d:\n", endlabel);
+			return;
+		}
 	}
 
 	if (node->ty=='=') {
