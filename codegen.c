@@ -13,6 +13,7 @@ void gen_lval(Node *node) {
 		error("存在しない変数です: %s\n", node->name);
 	}
 	int offset = (long)os * 8;
+	printf("# val: %s\n", node->name);
 	printf("	mov rax,rbp\n");
 	printf("	sub rax,%d\n", offset);
 	printf("	push rax\n");
@@ -98,6 +99,18 @@ void gen(Node *node) {
 		gen(node->rhs->rhs->lhs); // C
 		printf("	jmp .Lcond%d\n",lcond);
 		printf(".Lend%d:\n", lend);
+		return;
+	}
+
+	if (node->ty==ND_BLOCK) {
+		for (int i=0;i<node->stmts->len;i++) {
+			printf("# being block\n");
+			gen(node->stmts->data[i]);
+			if (i<node->stmts->len-1){
+				printf("	pop rax\n");
+			}
+			printf("# end block\n");
+		}
 		return;
 	}
 

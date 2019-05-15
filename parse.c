@@ -115,7 +115,20 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
-		if (*p=='+' || *p=='-' || *p=='*' || *p=='/' || *p=='(' || *p==')' || *p=='<' || *p=='>' || *p==';' || *p=='=') {
+		if (
+			*p=='+' ||
+			*p=='-' ||
+			*p=='*' ||
+			*p=='/' ||
+			*p=='(' ||
+			*p==')' ||
+			*p=='<' ||
+			*p=='>' ||
+			*p==';' ||
+			*p=='=' ||
+			*p=='{' ||
+			*p=='}'
+		) {
 			add_token(v, *p, p);
 			i++;
 			p++;
@@ -239,6 +252,16 @@ Node *stmt() {
 			error("forの条件式が閉じられていません");
 		}
 		n->rhs->rhs->rhs = stmt();
+		return n;
+	}
+
+	if (consume('{')) {
+		n = malloc(sizeof(Node));
+		n->ty = ND_BLOCK;
+		n->stmts = new_vector();
+		while (!consume('}')) {
+			vec_push(n->stmts, (void *)stmt());
+		}
 		return n;
 	}
 	

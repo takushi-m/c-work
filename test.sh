@@ -51,5 +51,6 @@ try 1 'if (1>0) return 1; else return 0;'
 try 1 'if (1==0) return 0; else return 1;'
 try 10 'i=0;while (i<10) i=i+1; return i;'
 try 20 'res=0;for(i=0;i<10;i=i+1)res=res+2;return res;'
+try 13 'a=1;b=1;for(i=0;i<5;i=i+1){tmp=a;a=a+b;b=tmp;}return a;'
 
 echo OK

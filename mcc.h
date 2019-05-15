@@ -52,7 +52,8 @@ enum {
 	ND_IF,
 	ND_ELSE,
 	ND_WHILE,
-	ND_FOR
+	ND_FOR,
+	ND_BLOCK
 };
 
 typedef struct Node {
@@ -61,6 +62,7 @@ typedef struct Node {
 	struct Node *rhs;
 	int val;  // ty==ND_NUM
 	char *name;  // ty==ND_IDENT
+	Vector *stmts; // ty==ND_BLOCK
 } Node;
 
 Node *new_node(int ty, Node *lhs, Node *rhs);
