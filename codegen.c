@@ -84,6 +84,23 @@ void gen(Node *node) {
 		return;
 	}
 
+	if (node->ty==ND_FOR) {
+		int lend = LABEL++;
+		int lcond = LABEL++;
+		// for (A;B;C) D
+		gen(node->lhs); // A
+		printf(".Lcond%d:\n", lcond);
+		gen(node->rhs->lhs); // B
+		printf("	pop rax\n");
+		printf("	cmp rax,0\n");
+		printf("	je .Lend%d\n", lend);
+		gen(node->rhs->rhs->rhs); // D
+		gen(node->rhs->rhs->lhs); // C
+		printf("	jmp .Lcond%d\n",lcond);
+		printf(".Lend%d:\n", lend);
+		return;
+	}
+
 	if (node->ty=='=') {
 		gen_lval(node->lhs);
 		gen(node->rhs);

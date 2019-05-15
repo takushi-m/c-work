@@ -65,6 +65,13 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
+		if (strncmp(p,"for",3)==0) {
+			add_token(v, TK_FOR, p);
+			i++;
+			p += 3;
+			continue;
+		}
+
 		if (strncmp(p,"if",2)==0) {
 			add_token(v, TK_IF, p);
 			i++;
@@ -208,6 +215,30 @@ Node *stmt() {
 			error("whileの条件式が閉じられていません");
 		}
 		n->rhs = stmt();
+		return n;
+	}
+
+	if (consume(TK_FOR)) {
+		if (!consume('(')) {
+			error("forの条件式がありません");
+		}
+		n = malloc(sizeof(Node));
+		n->ty = ND_FOR;
+		n->lhs = expr();
+		if (!consume(';')) {
+			error("forの条件式が不完全です");
+		}
+		n->rhs = malloc(sizeof(Node));
+		n->rhs->lhs = expr();
+		if (!consume(';')) {
+			error("forの条件式が不完全です");
+		}
+		n->rhs->rhs = malloc(sizeof(Node));
+		n->rhs->rhs->lhs = expr();
+		if (!consume(')')) {
+			error("forの条件式が閉じられていません");
+		}
+		n->rhs->rhs->rhs = stmt();
 		return n;
 	}
 	

@@ -50,5 +50,6 @@ try 1 'if (1==0) return 0;return 1;'
 try 1 'if (1>0) return 1; else return 0;'
 try 1 'if (1==0) return 0; else return 1;'
 try 10 'i=0;while (i<10) i=i+1; return i;'
+try 20 'res=0;for(i=0;i<10;i=i+1)res=res+2;return res;'
 
 echo OK
