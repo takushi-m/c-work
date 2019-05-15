@@ -51,6 +51,13 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
+		if (strncmp(p,"while",5)==0) {
+			add_token(v, TK_WHILE, p);
+			i++;
+			p += 5;
+			continue;
+		}
+
 		if (strncmp(p,"else",4)==0) {
 			add_token(v, TK_ELSE, p);
 			i++;
@@ -188,7 +195,23 @@ Node *stmt() {
 			n->rhs = then;
 		}
 		return n;
-	} else if (consume(TK_RETURN)) {
+	}
+
+	if (consume(TK_WHILE)) {
+		if (!consume('(')) {
+			error("whileの条件式がありません");
+		}
+		n = malloc(sizeof(Node));
+		n->ty = ND_WHILE;
+		n->lhs = expr();
+		if (!consume(')')) {
+			error("whileの条件式が閉じられていません");
+		}
+		n->rhs = stmt();
+		return n;
+	}
+	
+	if (consume(TK_RETURN)) {
 		n = malloc(sizeof(Node));
 		n->ty = ND_RETURN;
 		n->lhs = expr();

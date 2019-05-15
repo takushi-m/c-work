@@ -69,6 +69,21 @@ void gen(Node *node) {
 		}
 	}
 
+	if (node->ty==ND_WHILE) {
+		int lend = LABEL++;
+		int lcond = LABEL++;
+		// while (A) B
+		printf(".Lcond%d:\n", lcond);
+		gen(node->lhs); // A
+		printf("	pop rax\n");
+		printf("	cmp rax,0\n");
+		printf("	je .Lend%d\n", lend);
+		gen(node->rhs); // B
+		printf("	jmp .Lcond%d\n", lcond);
+		printf(".Lend%d:\n", lend);
+		return;
+	}
+
 	if (node->ty=='=') {
 		gen_lval(node->lhs);
 		gen(node->rhs);

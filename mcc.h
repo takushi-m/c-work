@@ -26,6 +26,7 @@ enum {
 	TK_RETURN,
 	TK_IF,
 	TK_ELSE,
+	TK_WHILE,
 	TK_EOF,
 	TK_EQ,
 	TK_NE,
@@ -48,7 +49,8 @@ enum {
 	ND_IDENT,
 	ND_RETURN,
 	ND_IF,
-	ND_ELSE
+	ND_ELSE,
+	ND_WHILE
 };
 
 typedef struct Node {
