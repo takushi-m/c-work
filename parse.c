@@ -51,6 +51,13 @@ Vector *tokenize(char *p) {
 			continue;
 		}
 
+		if (strncmp(p,"if",2)==0) {
+			add_token(v, TK_IF, p);
+			i++;
+			p += 2;
+			continue;
+		}
+
 		if (strncmp(p,"==",2)==0) {
 			add_token(v, TK_EQ, p);
 			i++;
@@ -153,7 +160,19 @@ Vector *program() {
 
 Node *stmt() {
 	Node *n;
-	if (consume(TK_RETURN)) {
+	if (consume(TK_IF)) {
+		if (!consume('(')) {
+			error("if (A) B の形にしてください");
+		}
+		n = malloc(sizeof(Node));
+		n->ty = ND_IF;
+		n->lhs = expr();
+		if (!consume(')')) {
+			error("ifの条件式が閉じられていません");
+		}
+		n->rhs = stmt();
+		return n;
+	} else if (consume(TK_RETURN)) {
 		n = malloc(sizeof(Node));
 		n->ty = ND_RETURN;
 		n->lhs = expr();

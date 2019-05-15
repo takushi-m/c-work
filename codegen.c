@@ -1,6 +1,8 @@
 #include<stdio.h>
 #include "mcc.h"
 
+int LABEL = 0;
+
 void gen_lval(Node *node) {
 	if (node->ty!=ND_IDENT) {
 		error("代入の左辺値が変数でありません\n");
@@ -36,6 +38,18 @@ void gen(Node *node) {
 		printf("	mov rsp,rbp\n");
 		printf("	pop rbp\n");
 		printf("	ret\n");
+		return;
+	}
+
+	if (node->ty==ND_IF) {
+		// if (A) B
+		int label = LABEL++;
+		gen(node->lhs); // A
+		printf("	pop rax\n");
+		printf("	cmp rax,0\n");
+		printf("	je .LABEL%d\n", label);
+		gen(node->rhs); // B
+		printf(".LABEL%d:\n", label);
 		return;
 	}
 

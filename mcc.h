@@ -24,6 +24,7 @@ enum {
 	TK_NUM = 256,
 	TK_IDENT,
 	TK_RETURN,
+	TK_IF,
 	TK_EOF,
 	TK_EQ,
 	TK_NE,
@@ -44,7 +45,8 @@ Token *add_token(Vector *vec, int ty, char *input);
 enum {
 	ND_NUM = 256,
 	ND_IDENT,
-	ND_RETURN
+	ND_RETURN,
+	ND_IF
 };
 
 typedef struct Node {
